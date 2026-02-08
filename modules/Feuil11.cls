@@ -1,0 +1,28 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Feuil11"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = True
+
+Private Sub Worksheet_Activate()
+    Dim t0 As Long
+    t0 = ChronoStart()
+    
+    majStatut
+    CA12Mois
+    CalculProjections
+   
+   
+    Me.Range("A10").Select
+    Call ChronoStop(t0, "Feuille accueil")
+  
+End Sub
+
+Private Sub Worksheet_SelectionChange(ByVal Target As Range)
+
+End Sub
+
