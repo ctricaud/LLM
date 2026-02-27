@@ -1,5 +1,62 @@
 Attribute VB_Name = "ModFonctions"
 Option Explicit
+Sub NettoyerBorduresHorizontalesVisibles()
+
+    Dim wn As Window
+    Dim ws As Worksheet
+    Dim firstRow As Long, lastRow As Long
+    Dim firstCol As Long, lastCol As Long
+    Dim r As Long
+    Dim rngRow As Range
+    Dim hasTop As Boolean, hasBottom As Boolean
+    
+    Application.ScreenUpdating = False
+    
+    For Each ws In ThisWorkbook.Sheets
+        
+       
+
+            firstCol = 1
+            lastCol = 1000
+            
+                For r = 1 To 10
+                    
+                    Set rngRow = ws.Range(ws.Cells(r, firstCol), ws.Cells(r, lastCol))
+                    
+             
+                        rngRow.Borders(xlEdgeTop).LineStyle = xlNone
+                 
+                        rngRow.Borders(xlEdgeBottom).LineStyle = xlNone
+
+                    
+                Next r
+                
+   
+            
+
+        
+Next ws
+    
+    Application.ScreenUpdating = True
+    
+End Sub
+
+
+Private Function BordureContinue(rng As Range, edgeType As XlBordersIndex) As Boolean
+    
+    Dim c As Range
+    
+    For Each c In rng.Cells
+        If c.Borders(edgeType).LineStyle = xlNone Then
+            BordureContinue = False
+            Exit Function
+        End If
+    Next c
+    
+    BordureContinue = True
+    
+End Function
+
 Public Sub ExportModules()
     Dim vbComp As VBIDE.VBComponent
     Dim exportPath As String, fName As String
@@ -199,11 +256,11 @@ Function ImporterCSVDansTableau(CheminFichier)
     Set csvFeuille = ActiveSheet
     
     ' Trouver la dernière ligne et dernière colonne de données
-    derniereligne = csvFeuille.cells(csvFeuille.rows.Count, 1).End(xlUp).row
-    dernierecolonne = csvFeuille.cells(1, csvFeuille.Columns.Count).End(xlToLeft).Column
+    derniereligne = csvFeuille.Cells(csvFeuille.Rows.Count, 1).End(xlUp).Row
+    dernierecolonne = csvFeuille.Cells(1, csvFeuille.Columns.Count).End(xlToLeft).Column
     
     ' Copier les données dans un tableau
-    ImporterCSVDansTableau = csvFeuille.Range(csvFeuille.cells(1, 1), csvFeuille.cells(derniereligne, dernierecolonne)).value
+    ImporterCSVDansTableau = csvFeuille.Range(csvFeuille.Cells(1, 1), csvFeuille.Cells(derniereligne, dernierecolonne)).value
     
     ' Fermer le fichier CSV sans sauvegarder les modifications
     csvFeuille.Parent.Close SaveChanges:=False
@@ -429,7 +486,7 @@ Function nbJoursMois(mois, annee)
 End Function
 Function LettresColonne(NoCol)
     'Retourne le numéro de colonne à partir des lettres Excel
-    LettresColonne = Split(cells(1, NoCol).Address, "$")(1)
+    LettresColonne = Split(Cells(1, NoCol).Address, "$")(1)
 End Function
 Function indexRange(Nom, colonne, valeur) As Integer
    'Retourne l'index d'une valeur dans un tableau

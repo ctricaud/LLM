@@ -10,7 +10,7 @@ Attribute VB_Exposed = True
 Private Sub Worksheet_BeforeDoubleClick(ByVal Target As Range, Cancel As Boolean)
     If Target.Column = 6 And Target.value = "X" Then
         'On supprime la ligne
-        Range("Notifs").ListObject.ListRows(Target.row - 2).Delete
+        Range("Notifs").ListObject.ListRows(Target.Row - 2).Delete
         Cancel = True
     End If
     

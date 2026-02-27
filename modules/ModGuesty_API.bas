@@ -447,7 +447,7 @@ Sub GuestyGetReviews(Optional effaceLog = True)
     D.CompareMode = vbTextCompare
     
     Dim nr As Long
-    nr = Range("listeRésas").ListObject.DataBodyRange.rows.Count
+    nr = Range("listeRésas").ListObject.DataBodyRange.Rows.Count
     If nr > 0 Then
         Dim indexR
         indexR = Feuil10.Range("listeRésas").ListObject.ListColumns("Code réservation").DataBodyRange.value
@@ -602,7 +602,7 @@ Sub GuestyRemoveReservation(iReservation)
     '1. On met le message
     '-------------------------------------------------------------------
     Dim T As Variant
-    T = Range("ListeRésas").rows(iReservation)
+    T = Range("ListeRésas").Rows(iReservation)
 
     Dim texte As String
     
@@ -613,7 +613,7 @@ Sub GuestyRemoveReservation(iReservation)
     log ""
     
     '-------------------------------------------------------------------
-    '2. On supprime la ligne
+    '3. On supprime la ligne
     '-------------------------------------------------------------------
     Range("ListeRésas").ListObject.ListRows(iReservation).Delete
     
@@ -662,7 +662,7 @@ Sub CompareResasDansGuesty()
     Set D = CreateObject("Scripting.Dictionary")
     D.CompareMode = vbTextCompare
     
-    nr = loR.DataBodyRange.rows.Count
+    nr = loR.DataBodyRange.Rows.Count
     If nr > 0 Then
         Dim aLogR, aSrcR, aDateR, aNuitR
         aLogR = loR.ListColumns("Location").DataBodyRange.value
@@ -680,7 +680,7 @@ Sub CompareResasDansGuesty()
     '2. On vérifie l'existence des réservations de listeGuesty
     '--------------------------------------------------------------------------------
     '--- Vérifier chaque résa de ListeGuesty contre l'index
-    nG = log.DataBodyRange.rows.Count
+    nG = log.DataBodyRange.Rows.Count
     If nG = 0 Then Exit Sub
     
     Dim gLog, gSrc, gDate, gNuit, gidReservation
@@ -720,7 +720,7 @@ Sub CompareGuestyDansResas()
     Set D = CreateObject("Scripting.Dictionary")
     D.CompareMode = vbTextCompare
     
-    nr = loR.DataBodyRange.rows.Count
+    nr = loR.DataBodyRange.Rows.Count
     If nr > 0 Then
         Dim aLogR, aSrcR, aDateR, aNuitR
         aLogR = loR.ListColumns("Location").DataBodyRange.value
@@ -738,7 +738,7 @@ Sub CompareGuestyDansResas()
     '2. On vérifie l'existence des réservations de listeRésas
     '--------------------------------------------------------------------------------
     '--- Vérifier chaque résa de ListeGuesty contre l'index
-    nG = log.DataBodyRange.rows.Count
+    nG = log.DataBodyRange.Rows.Count
     If nG = 0 Then Exit Sub
     
     Dim gLog, gSrc, gDate, gNuit, gidReservation

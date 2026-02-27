@@ -20,7 +20,7 @@ Private Sub Worksheet_Activate()
         .List = Feuil5.Range("Logements[Logements]").value
         .AddItem "Maury + Apollinaire"
         .AddItem "Tous les logements"
-        .ListIndex = 5
+        .ListIndex = 6
     End With
    majCalculChannel
 End Sub

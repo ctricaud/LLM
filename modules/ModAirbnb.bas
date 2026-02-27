@@ -160,7 +160,7 @@ Sub airbnbGetStats(Optional driver As Object)
             If T(Range(NomTableau).ListObject.ListColumns("Date").Index) <> Range(NomTableau + "[Date]")(Range(NomTableau + "[Date]").Count) Then
                 Range(NomTableau).ListObject.ListRows.Add
             End If
-            Range(NomTableau).rows(Range(NomTableau).rows.Count).value = T
+            Range(NomTableau).Rows(Range(NomTableau).Rows.Count).value = T
             
         Next iJour
     Next iLogement

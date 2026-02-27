@@ -513,19 +513,21 @@ Sub CalculCalendrier()
     '==============================================================
     Dim TableauCalendrier
     Dim ContenuCalendrier
+    Dim wsCal As Worksheet
     
     TableauCalendrier = "TableauCalendrier"
     ContenuCalendrier = "ContenuCalendrier"
+    Set wsCal = Sheets("Calendrier")
     
-    Range(TableauCalendrier).ClearContents
-    Range(TableauCalendrier).Borders.LineStyle = xlLineStyleNone
-    Range(ContenuCalendrier).Font.size = 16
-    Range(ContenuCalendrier).Font.Name = "WingDings"
-    Range(ContenuCalendrier).ShrinkToFit = False
+    wsCal.Range(TableauCalendrier).ClearContents
+    wsCal.Range(TableauCalendrier).Borders.LineStyle = xlLineStyleNone
+    wsCal.Range(ContenuCalendrier).Font.size = 16
+    wsCal.Range(ContenuCalendrier).Font.Name = "WingDings"
+    wsCal.Range(ContenuCalendrier).ShrinkToFit = False
 
     'On récupère le tableau dans une table
     Dim Resultat As Variant
-    Resultat = Range(TableauCalendrier).value
+    Resultat = wsCal.Range(TableauCalendrier).value
     
     '==============================================================
     '3. On calcule les données
@@ -608,14 +610,14 @@ Sub CalculCalendrier()
     '==============================================================
     '4. On peuple le tableau
     '==============================================================
-    Range(TableauCalendrier).value = Resultat
+    wsCal.Range(TableauCalendrier).value = Resultat
 
     '==============================================================
     '5. On effectue les bordures
     '==============================================================
-    Range("B2:NC2").BorderAround LineStyle:=xlContinuous, Weight:=xlThin
-    Range("B3:NC3").BorderAround LineStyle:=xlContinuous, Weight:=xlThin
-    Range("B3" + ":NC" + CStr(3 + dicLog.Count)).BorderAround LineStyle:=xlContinuous, Weight:=xlThin
+    wsCal.Range("B2:NC2").BorderAround LineStyle:=xlContinuous, Weight:=xlThin
+    wsCal.Range("B3:NC3").BorderAround LineStyle:=xlContinuous, Weight:=xlThin
+    wsCal.Range("B3" + ":NC" + CStr(3 + dicLog.Count)).BorderAround LineStyle:=xlContinuous, Weight:=xlThin
     
     'Pour les séparateurs de semaine
     Dim plage As Range
@@ -623,16 +625,16 @@ Sub CalculCalendrier()
     Dim iLundi As Integer
     Dim iCol As Integer
     
-    Set ws = ActiveSheet
+    Set ws = wsCal
     
     For iLundi = 1 To nbLundis
         If plage Is Nothing Then
             For iCol = 3 To dicLog.Count
-                Set plage = ws.cells(iCol, posLundi(iLundi))
+                Set plage = ws.Cells(iCol, posLundi(iLundi))
             Next iCol
         Else
             For iCol = 3 To dicLog.Count + 3
-                Set plage = Union(plage, ws.cells(iCol, posLundi(iLundi)))
+                Set plage = Union(plage, ws.Cells(iCol, posLundi(iLundi)))
             Next iCol
         End If
     Next iLundi
@@ -646,7 +648,7 @@ Sub CalculCalendrier()
     
     'Pour les séparateurs des mois
     For i = 1 To idMois - 1
-        Range(PosColMois(i) + "2" + ":" + PosColFinMois(i + 1) + CStr(3 + dicLog.Count)).BorderAround LineStyle:=xlContinuous, Weight:=xlThin
+        wsCal.Range(PosColMois(i) + "2" + ":" + PosColFinMois(i + 1) + CStr(3 + dicLog.Count)).BorderAround LineStyle:=xlContinuous, Weight:=xlThin
     Next i
 
     '==============================================================
@@ -689,8 +691,6 @@ Sub CalculCalendrier()
     Feuil6.Range("TitreLogementsA").value = lActifs
     
 End Sub
-
-
 
 Function CalculLogementsActifs()
     '----------------------------------------------------------------
@@ -914,7 +914,7 @@ Sub CA12Mois()
         
         'On indique ainsi le stock
         For i = 1 To 2
-            Total = Total + Feuil11.Range("AVenir").cells(i, dicSrc.Count + 3)
+            Total = Total + Feuil11.Range("AVenir").Cells(i, dicSrc.Count + 3)
         Next i
         Feuil11.Range("HistoriqueCA[Portefeuille]")(1) = Total
         
@@ -1426,7 +1426,7 @@ End Sub
 '----------------------------------------
 Private Function GetColByHeader(ByVal ws As Worksheet, ByVal headerText As String) As Long
     Dim f As Range
-    Set f = ws.rows(1).Find(What:=headerText, LookIn:=xlValues, LookAt:=xlWhole, _
+    Set f = ws.Rows(1).Find(What:=headerText, LookIn:=xlValues, LookAt:=xlWhole, _
                             SearchOrder:=xlByColumns, MatchCase:=False)
     If Not f Is Nothing Then
         GetColByHeader = f.Column
@@ -1435,7 +1435,7 @@ Private Function GetColByHeader(ByVal ws As Worksheet, ByVal headerText As Strin
     End If
 End Function
 
-Sub majRecapitulatif()
+Sub majRecapitulatif(Optional anFin = 2030)
     Dim t0 As Long
     t0 = ChronoStart()
     'BeginAppState
@@ -1444,8 +1444,7 @@ Sub majRecapitulatif()
     '1. On récupère les données mensuelles depuis la table des réservations
     '----------------------------------------------------------------
     Dim anDebut As Integer: anDebut = 2023
-    Dim anFin As Integer: anFin = 2030
-    Dim nbAnAffichage As Integer: nbAnAffichage = dicLogB.Count
+   
     
     Dim tableaRevenusMois As Variant
     Dim tableStockMois As Variant
@@ -1469,21 +1468,6 @@ Sub majRecapitulatif()
     Dim nbAn  As Integer: nbAn = anFin - anDebut + 1
     Dim iAn As Integer
     
-    If nbAn >= nbAnAffichage Then
-        For iAn = 1 To nbAnAffichage
-            Feuil7.Range("Annee" + CStr(iAn)) = anDebut + iAn - 1
-        Next iAn
-        anFin = anDebut + nbAnAffichage - 1
-        nbAn = nbAnAffichage
-    Else
-        For iAn = 1 To nbAn
-            Range("Annee" + CStr(iLogement)) = anDebut + iAn - 1
-        Next iAn
-        For iAn = nbAn + 1 To nbAnAffichage
-            Range("Annee" + CStr(iAn)) = ""
-        Next iAn
-        
-    End If
     
     '---------------------------------------------------------
     '3. On prépare les tableaux pour peupler
@@ -1493,10 +1477,10 @@ Sub majRecapitulatif()
     For iLogement = 1 To dicLogB.Count
         If dicLog(dicLogB.Keys()(iLogement - 1)) Then
             'On efface le contenu
-            Range("Tableaux" + CStr(iLogement)).ClearContents
+            Range("RecapTableau" + CStr(iLogement)).ClearContents
             
             'On récupère le contenu du tableau pour le mettre à jour
-            TableauResultat = Range("Tableaux" + CStr(iLogement)).value
+            TableauResultat = Range("RecapTableau" + CStr(iLogement)).value
             
             'Boucle des dates
             Dim TotalCA, TotalBudget, TotalCout, TotalStock As Currency
@@ -1558,31 +1542,30 @@ Sub majRecapitulatif()
                 End If
             Next iAn
             
-            'On met à jour le budget 2024 à 2027
+            'On met à jour le budget 2024 à anfin
             Dim PosX, PosY, LigX
-            For iAn = 2024 To 2027
+            For iAn = 2024 To anFin
                 TotalBudget = 0
                 'Colonne du budget à prendre
                 'La colonne de la source
-                PosY = 3 + (iLogement - 1) * 2
-                'La ligne de la source
-                PosX = 13 + 21 * (iAn - 2024)
+                PosY = iLogement * 2
+                
                 
                 'La ligne de la destination
                 LigX = 6 + (iAn - 2024) * 4
                 
                 For iMois = 1 To 12
-                    TableauResultat(LigX, iMois) = Feuil2.cells(PosX + iMois + Int((iMois - 1) / 3) - (iMois > 6), PosY).value
+                    TableauResultat(LigX, iMois) = Range("Budget" + CStr(iAn)).Cells(iMois, PosY).value
                     TotalBudget = TableauResultat(LigX, iMois) + TotalBudget
                 Next iMois
                 TableauResultat(LigX, 13) = TotalBudget
             Next iAn
             
             'On met à jour le tableau
-            Range("Tableaux" + CStr(iLogement)) = TableauResultat
+            Range("RecapTableau" + CStr(iLogement)) = TableauResultat
         End If
-        
     Next iLogement
+    
     Call ChronoStop(t0, "MajRecapitulatif")
     EndAppState
 End Sub

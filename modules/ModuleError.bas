@@ -20,11 +20,11 @@ Public Sub LogError(ByVal proc As String, ByVal lineNum As Long, ByVal errNum As
     Call EnsureLogSheet
     Dim ws As Worksheet, nextRow As Long
     Set ws = ThisWorkbook.Worksheets(LOG_SHEET)
-    nextRow = ws.cells(ws.rows.Count, "A").End(xlUp).row + 1
-    ws.cells(nextRow, 1).value = Now
-    ws.cells(nextRow, 2).value = proc & IIf(lineNum > 0, " [Erl=" & lineNum & "]", "")
-    ws.cells(nextRow, 3).value = errNum
-    ws.cells(nextRow, 4).value = msg
+    nextRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row + 1
+    ws.Cells(nextRow, 1).value = Now
+    ws.Cells(nextRow, 2).value = proc & IIf(lineNum > 0, " [Erl=" & lineNum & "]", "")
+    ws.Cells(nextRow, 3).value = errNum
+    ws.Cells(nextRow, 4).value = msg
     Debug.Print "ERR " & proc & " #" & errNum & " @L" & lineNum & " : " & msg
 End Sub
 
@@ -33,10 +33,10 @@ Public Sub LogInfo(ByVal msg As String)
     Call EnsureLogSheet
     Dim ws As Worksheet, nextRow As Long
     Set ws = ThisWorkbook.Worksheets(LOG_SHEET)
-    nextRow = ws.cells(ws.rows.Count, "A").End(xlUp).row + 1
-    ws.cells(nextRow, 1).value = Now
-    ws.cells(nextRow, 2).value = "INFO"
-    ws.cells(nextRow, 4).value = msg
+    nextRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row + 1
+    ws.Cells(nextRow, 1).value = Now
+    ws.Cells(nextRow, 2).value = "INFO"
+    ws.Cells(nextRow, 4).value = msg
     Debug.Print "INFO " & msg
 End Sub
 
