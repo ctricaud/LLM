@@ -2,6 +2,91 @@ Attribute VB_Name = "ModCalcul"
 
 Option Explicit
 
+Sub CalculAnnulations()
+    '1 On prépare les tableaux
+    Dim T As Variant
+    Dim U As Variant
+    
+    T = Range("ListeRésas")
+    U = Range("Annulation")
+    
+    Dim Nuits(1 To 13, 2025 To 2030)
+    Dim NuitsBooking(1 To 13, 2025 To 2030)
+    Dim NuitsAirbnb(1 To 13, 2025 To 2030)
+   Dim Annulations(1 To 13, 2025 To 2030)
+    Dim AnnulationsBooking(1 To 13, 2025 To 2030)
+    Dim AnnulationsAirbnb(1 To 13, 2025 To 2030)
+    
+    Dim i, j As Long
+        
+    '2 On calcule les nuits à partir de la date de réservation
+    For i = 1 To UBound(T)
+        If Year(T(i, 17)) > 2024 Then
+            Nuits(Month(T(i, 17)), Year(T(i, 17))) = Nuits(Month(T(i, 17)), Year(T(i, 17))) + T(i, 4)
+            Select Case T(i, 2)
+                Case "Airbnb": NuitsAirbnb(Month(T(i, 17)), Year(T(i, 17))) = NuitsAirbnb(Month(T(i, 17)), Year(T(i, 17))) + T(i, 4)
+                Case "Booking": NuitsBooking(Month(T(i, 17)), Year(T(i, 17))) = NuitsBooking(Month(T(i, 17)), Year(T(i, 17))) + T(i, 4)
+            End Select
+        End If
+    Next i
+    
+    '3 On calcule les nuits annulées à partir de la date de réservation
+    For i = 1 To UBound(U)
+        If Year(U(i, 8)) > 2024 Then
+            Annulations(Month(U(i, 8)), Year(U(i, 8))) = Annulations(Month(U(i, 8)), Year(U(i, 8))) + U(i, 4)
+            Select Case U(i, 2)
+                Case "Airbnb": AnnulationsAirbnb(Month(U(i, 8)), Year(U(i, 8))) = AnnulationsAirbnb(Month(U(i, 8)), Year(U(i, 8))) + U(i, 4)
+                Case "Booking": AnnulationsBooking(Month(U(i, 8)), Year(U(i, 8))) = AnnulationsBooking(Month(U(i, 8)), Year(U(i, 8))) + U(i, 4)
+            End Select
+        End If
+    Next i
+    
+    '4 On fait les totaux
+    For i = 1 To 12
+        For j = 2025 To 2030
+            Nuits(13, j) = Nuits(13, j) + Nuits(i, j)
+            NuitsAirbnb(13, j) = NuitsAirbnb(13, j) + NuitsAirbnb(i, j)
+            NuitsBooking(13, j) = NuitsBooking(13, j) + NuitsBooking(i, j)
+            Annulations(13, j) = Annulations(13, j) + Annulations(i, j)
+            AnnulationsAirbnb(13, j) = AnnulationsAirbnb(13, j) + AnnulationsAirbnb(i, j)
+            AnnulationsBooking(13, j) = AnnulationsBooking(13, j) + AnnulationsBooking(i, j)
+        Next j
+    
+    Next i
+    
+    '5 On met à jour le tableau avec les valeurs obtenues
+    Dim R As Variant
+    Dim texte As String
+    R = Range("TauxAnnulation")
+    
+    For i = 1 To 13
+        For j = 2025 To 2030
+            texte = ""
+            '4.1 On calcule pour le total
+            If Annulations(i, j) <> 0 Then
+                texte = CStr(CInt(Annulations(i, j) / (Nuits(i, j) + Annulations(i, j)) * 100)) + "% ("
+                    If AnnulationsAirbnb(i, j) <> 0 Then
+                        texte = texte + CStr(CInt(AnnulationsAirbnb(i, j) / (NuitsAirbnb(i, j) + AnnulationsAirbnb(i, j)) * 100)) + " , "
+                    Else
+                        texte = texte + "- , "
+                    End If
+                    If AnnulationsBooking(i, j) <> 0 Then
+                        texte = texte + CStr(CInt(AnnulationsBooking(i, j) / (NuitsBooking(i, j) + AnnulationsBooking(i, j)) * 100))
+                    Else
+                        texte = texte + "-"
+                    End If
+                texte = texte + ")"
+            End If
+            R(i, j - 2024) = texte
+        Next j
+    Next i
+    
+    '5 On met à jour le tableau
+    Range("TauxAnnulation") = R
+    
+End Sub
+
+
 ' -------------------------------------------------------------------------
 ' Procédure : CalculProjections
 ' Auteur    : Gemini
@@ -240,10 +325,10 @@ Sub CalculPriseReservations()
     '------------------------------------------------------------
     
     Dim T As Variant
-    Dim r As Variant
-    Dim i, j, anDebut, anFin, an, mois, idBookingDate, idVersement, idLogement As Integer
+    Dim R As Variant
+    Dim i, j, anDebut, anFin, An, Mois, idBookingDate, idVersement, idLogement As Integer
     
-    r = Range("ListeRésas")
+    R = Range("ListeRésas")
     T = Range("PriseReservation")
     idBookingDate = Range("ListeRésas").ListObject.ListColumns("booking_date").Index
     idVersement = Range("ListeRésas").ListObject.ListColumns("Versement").Index
@@ -264,12 +349,12 @@ Sub CalculPriseReservations()
     '--------------------------------------------------------------------------------
     '2. On lance les calculs
     '--------------------------------------------------------------------------------
-    For i = 1 To UBound(r)
-        If Year(r(i, idBookingDate)) <= anFin And Year(r(i, idBookingDate)) >= anDebut Then
-            If r(i, idLogement) = "Apollinaire" Or r(i, idLogement) = "Maury" Then
-                T(Month(r(i, idBookingDate)), -anDebut + Year(r(i, idBookingDate)) + 2) = _
-                T(Month(r(i, idBookingDate)), -anDebut + Year(r(i, idBookingDate)) + 2) + _
-                r(i, 10)
+    For i = 1 To UBound(R)
+        If Year(R(i, idBookingDate)) <= anFin And Year(R(i, idBookingDate)) >= anDebut Then
+            If R(i, idLogement) = "Apollinaire" Or R(i, idLogement) = "Maury" Then
+                T(Month(R(i, idBookingDate)), -anDebut + Year(R(i, idBookingDate)) + 2) = _
+                T(Month(R(i, idBookingDate)), -anDebut + Year(R(i, idBookingDate)) + 2) + _
+                R(i, 10)
             End If
         End If
     Next i
@@ -297,25 +382,25 @@ Sub CalculProchainsPaiements()
     Range("ProchainsPaiements").ListObject.DataBodyRange.ClearContents
     ReDim PP(1 To 20, 1 To 4)
     
-    Dim r, n As Long
+    Dim R, n As Long
     
     '---------------------------------------------------------------------
     'On parcourt T pour calculer les prochains paiements
     '---------------------------------------------------------------------
     Dim depart As Long
         Init
-    For r = UBound(T) To 1 Step -1
-        If T(r, idxResas("Payé")) = "" Or (Date - T(r, idxResas("Date Début"))) < 7 Then
+    For R = UBound(T) To 1 Step -1
+        If T(R, idxResas("Payé")) = "" Or (Date - T(R, idxResas("Date Début"))) < 7 Then
             n = n + 1
             'On met à jour T
-             PP(n, 2) = T(r, 2)
+             PP(n, 2) = T(R, 2)
              Select Case PP(n, 2)
                 Case "Booking":
-                    PP(n, 1) = T(r, 3) + 2 + T(r, 4)
-                    PP(n, 3) = T(r, 10) + T(r, 9)
+                    PP(n, 1) = T(R, 3) + 2 + T(R, 4)
+                    PP(n, 3) = T(R, 10) + T(R, 9)
                 Case "Airbnb":
-                    PP(n, 1) = T(r, 3) + 2
-                    PP(n, 3) = T(r, 10)
+                    PP(n, 1) = T(R, 3) + 2
+                    PP(n, 3) = T(R, 10)
             End Select
             
             'On gère les week ends
@@ -332,7 +417,7 @@ Sub CalculProchainsPaiements()
             
             If n = 20 Then Exit For
         End If
-    Next r
+    Next R
     
     'On remplit le tableau
     Range("ProchainsPaiements") = PP
@@ -349,6 +434,7 @@ Sub MAJTravaux()
     StatistiquesNotations
     CalculMenage (180)
     CalculMargeBrute
+    CalculAnnulations
     
     CalculPriseReservations
     CalculProchainsPaiements
@@ -362,11 +448,11 @@ End Sub
 
 
 
-Function GetMinMax(arrData As Variant, Logement As Long, mois, annee) As String
+Function GetMinMax(arrData As Variant, Logement As Long, Mois, annee) As String
     Dim vMin As Currency, vMax As Currency
     
-    vMin = arrData(Logement, mois, annee, 1)
-    vMax = arrData(Logement, mois, annee, 2)
+    vMin = arrData(Logement, Mois, annee, 1)
+    vMax = arrData(Logement, Mois, annee, 2)
     If vMin >= 0 Then
         GetMinMax = "(" & CStr(Int(vMin)) & " / " & CStr(Int(vMax)) & " €)"
     Else
@@ -384,8 +470,8 @@ Function CalculMinMax() As Variant
     Dim tblResa As ListObject, tblLog As ListObject
     Dim arrResult() As Currency
     Dim nbLogements As Long, iLog As Long
-    Dim annee As Long, mois As Long
-    Dim r As ListRow
+    Dim annee As Long, Mois As Long
+    Dim R As ListRow
     
     Dim idxColLogement As Long, idxColPrix As Long, idxColDate As Long
     Dim logName As String, prixNuit As Variant, dateDeb As Date
@@ -417,33 +503,33 @@ Function CalculMinMax() As Variant
     '--- Initialisation min/max
     For iLog = 1 To nbLogements
         For annee = 2023 To 2030
-            For mois = 0 To 12
-                arrResult(iLog, mois, annee, 1) = CUR_MAX_SENTINEL ' min init
-                arrResult(iLog, mois, annee, 2) = CUR_MIN_SENTINEL ' max init
-            Next mois
+            For Mois = 0 To 12
+                arrResult(iLog, Mois, annee, 1) = CUR_MAX_SENTINEL ' min init
+                arrResult(iLog, Mois, annee, 2) = CUR_MIN_SENTINEL ' max init
+            Next Mois
         Next annee
     Next iLog
     
     '--- Parcours des réservations
-    For Each r In tblResa.ListRows
-        logName = CStr(r.Range.Columns(idxColLogement).value)
-        prixNuit = r.Range.Columns(idxColPrix).value
-        dateDeb = r.Range.Columns(idxColDate).value
+    For Each R In tblResa.ListRows
+        logName = CStr(R.Range.Columns(idxColLogement).value)
+        prixNuit = R.Range.Columns(idxColPrix).value
+        dateDeb = R.Range.Columns(idxColDate).value
         
         If IsNumeric(prixNuit) And Not IsEmpty(prixNuit) And prixNuit > 0 Then
             annee = Year(dateDeb)
             If annee >= 2023 And annee <= 2030 Then
-                mois = Month(dateDeb)
+                Mois = Month(dateDeb)
                 
                 ' Trouver l’index du logement via la helper fournie
                 idxLog = dLog(logName)
                 If idxLog > 0 And idxLog <= nbLogements Then
                     '--- Min/Max mensuels
-                    If CCur(prixNuit) < arrResult(idxLog, mois, annee, 1) Then
-                        arrResult(idxLog, mois, annee, 1) = CCur(prixNuit)
+                    If CCur(prixNuit) < arrResult(idxLog, Mois, annee, 1) Then
+                        arrResult(idxLog, Mois, annee, 1) = CCur(prixNuit)
                     End If
-                    If CCur(prixNuit) > arrResult(idxLog, mois, annee, 2) Then
-                        arrResult(idxLog, mois, annee, 2) = CCur(prixNuit)
+                    If CCur(prixNuit) > arrResult(idxLog, Mois, annee, 2) Then
+                        arrResult(idxLog, Mois, annee, 2) = CCur(prixNuit)
                     End If
                     
                     '--- Min/Max annuels (mois = 0)
@@ -456,19 +542,19 @@ Function CalculMinMax() As Variant
                 End If
             End If
         End If
-    Next r
+    Next R
     
     '--- Remplacer les sentinelles par 0 si aucune donnée
     For iLog = 1 To nbLogements
         For annee = 2023 To 2030
-            For mois = 0 To 12
-                If arrResult(iLog, mois, annee, 1) = CUR_MAX_SENTINEL Then
-                    arrResult(iLog, mois, annee, 1) = 0
+            For Mois = 0 To 12
+                If arrResult(iLog, Mois, annee, 1) = CUR_MAX_SENTINEL Then
+                    arrResult(iLog, Mois, annee, 1) = 0
                 End If
-                If arrResult(iLog, mois, annee, 2) = CUR_MIN_SENTINEL Then
-                    arrResult(iLog, mois, annee, 2) = 0
+                If arrResult(iLog, Mois, annee, 2) = CUR_MIN_SENTINEL Then
+                    arrResult(iLog, Mois, annee, 2) = 0
                 End If
-            Next mois
+            Next Mois
         Next annee
     Next iLog
     
@@ -494,7 +580,7 @@ Sub CalculCalendrier()
     Dim MatricePrix As Variant
     Dim tableauReservations As Variant
     Dim TableauLogements As Variant
-    Dim i As Long: Dim j As Long: Dim k As Long: Dim r As Long
+    Dim i As Long: Dim j As Long: Dim k As Long: Dim R As Long
     Dim Occupe As Boolean
     
     anDebut = Year(Now)
@@ -594,12 +680,12 @@ Sub CalculCalendrier()
             
             If Occupe Then
                 'On regarde s'il faut faire changer le ticker
-                For r = 1 To UBound(tableauReservations, 1)
-                    If tableauReservations(r, 1) = ListeLogements(j, 1) And tableauReservations(r, 3) = i And dicSrc.Keys()(k - 1) <> "HomeExchange" Then
+                For R = 1 To UBound(tableauReservations, 1)
+                    If tableauReservations(R, 1) = ListeLogements(j, 1) And tableauReservations(R, 3) = i And dicSrc.Keys()(k - 1) <> "HomeExchange" Then
                         If Ticker(j) = "x" Then Ticker(j) = "y" Else Ticker(j) = "x"
                         Exit For
                     End If
-                Next r
+                Next R
                 Resultat(j + 2, col) = Ticker(j)
             Else
                 If i >= LBound(MatricePrix, 2) And i <= UBound(MatricePrix, 2) Then Resultat(j + 2, col) = MatricePrix(dicLogA.Items()(j - 1) - 1, i)

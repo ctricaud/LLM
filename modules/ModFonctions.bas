@@ -6,7 +6,7 @@ Sub NettoyerBorduresHorizontalesVisibles()
     Dim ws As Worksheet
     Dim firstRow As Long, lastRow As Long
     Dim firstCol As Long, lastCol As Long
-    Dim r As Long
+    Dim R As Long
     Dim rngRow As Range
     Dim hasTop As Boolean, hasBottom As Boolean
     
@@ -19,9 +19,9 @@ Sub NettoyerBorduresHorizontalesVisibles()
             firstCol = 1
             lastCol = 1000
             
-                For r = 1 To 10
+                For R = 1 To 10
                     
-                    Set rngRow = ws.Range(ws.Cells(r, firstCol), ws.Cells(r, lastCol))
+                    Set rngRow = ws.Range(ws.Cells(R, firstCol), ws.Cells(R, lastCol))
                     
              
                         rngRow.Borders(xlEdgeTop).LineStyle = xlNone
@@ -29,7 +29,7 @@ Sub NettoyerBorduresHorizontalesVisibles()
                         rngRow.Borders(xlEdgeBottom).LineStyle = xlNone
 
                     
-                Next r
+                Next R
                 
    
             
@@ -477,11 +477,11 @@ Sub Sauvegarde()
 
     ThisWorkbook.SaveCopyAs nomFichier
 End Sub
-Function nbJoursMois(mois, annee)
+Function nbJoursMois(Mois, annee)
     'Retourne le nombre de jours d'un mois passé en paramètre
     Dim dd As String
     
-    dd = "01/" + CStr(mois) + "/" + CStr(annee)
+    dd = "01/" + CStr(Mois) + "/" + CStr(annee)
     nbJoursMois = DateAdd("m", 1, dd) - CDate(dd)
 End Function
 Function LettresColonne(NoCol)
@@ -491,13 +491,13 @@ End Function
 Function indexRange(Nom, colonne, valeur) As Integer
    'Retourne l'index d'une valeur dans un tableau
    Dim i As Integer
-   Dim r As Range
+   Dim R As Range
    
-    Set r = Range(Nom)
+    Set R = Range(Nom)
     indexRange = 0      'Valeur si pas trouvé
     
-    For i = 1 To r.ListObject.ListRows.Count
-        If r(i, colonne).value = valeur Then
+    For i = 1 To R.ListObject.ListRows.Count
+        If R(i, colonne).value = valeur Then
             indexRange = i
             Exit For
         End If

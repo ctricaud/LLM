@@ -15,6 +15,38 @@ Private Const GUESTY_RESERVATION_DETAIL As String = "https://open-api.guesty.com
 '-------------------------Les variables
 Public dicSource, dicLogement As Object
    
+Private Sub ArchiveReservationAnnulee(ByVal reservationRow As Variant)
+    Dim loAnnulation As ListObject
+    On Error Resume Next
+    Set loAnnulation = Range("Annulation").ListObject
+    On Error GoTo 0
+
+    If loAnnulation Is Nothing Then
+        log "Tableau 'Annulation' introuvable : archivage de l'annulation ignoré."
+        Exit Sub
+    End If
+
+    Dim nouvelleLigne As ListRow
+    Set nouvelleLigne = loAnnulation.ListRows.Add(1)
+
+    Dim col As Long
+    Dim nomCol As String
+
+    For col = 1 To loAnnulation.ListColumns.Count
+        nomCol = Trim$(loAnnulation.ListColumns(col).Name)
+
+        If nomCol = "Cancel_Date" Then
+           nouvelleLigne.Range.Cells(1, col).value = Date
+        ElseIf idxResas(nomCol) <> "" Then
+            nouvelleLigne.Range.Cells(1, col).value = reservationRow(1, idxResas(nomCol))
+        End If
+    Next col
+
+    
+End Sub
+
+
+
 Private Function LISTEID() As Variant
     LISTEID = Array("672c9288bd52280010d9bad8", "672c9265a689710012eb3c90", "672c92bd0f95e1001361a6a7")
 End Function
@@ -115,45 +147,45 @@ Public Function GuestyGetReservation(ByVal reservationId As String) As Object
    '---------------------------------------------------------------------------------
     '3. On récupère les informations qui nous intéressent
    '---------------------------------------------------------------------------------
-    Dim dic, ret As Object
-    Set dic = ParseJson(http.responseText)
+    Dim Dic, ret As Object
+    Set Dic = ParseJson(http.responseText)
     
     Dim dicRet As Object
     Set dicRet = New Dictionary
     Dim Fees As Currency
     
-    dicRet("Booking_date") = ISO8601ToDate(dic("obj.guestStay.createdAt"))
-    dicRet("updated_At") = ISO8601ToDate(dic("obj.guestStay.updatedAt"))
+    dicRet("Booking_date") = ISO8601ToDate(Dic("obj.guestStay.createdAt"))
+    dicRet("updated_At") = ISO8601ToDate(Dic("obj.guestStay.updatedAt"))
     dicRet("Code réservation") = reservationId
-    dicRet("status") = dic("obj.status")
-    dicRet("phone") = "'" + dic("obj.guest.phone")
-    dicRet("guest user") = dic("obj.guest.fullName")
-    dicRet("lastName") = dic("obj.guest.lastName")
-    dicRet("firstName") = dic("obj.guest.firstName")
-    dicRet("guestEmail") = dic("obj.guest.email")
-    dicRet("listing_id2") = dic("obj.listingId")
-    dicRet("Location") = dicLogement(dic("obj.listingId"))
-    dicRet("Source") = dicSource(dic("obj.integration.platform"))
-    dicRet("Currency") = dic("obj.listing.prices.currency")
-    dicRet("guestCount") = dic("obj.guestsCount")
-    dicRet("adults") = dic("obj.numberOfGuests.numberOfAdults")
-    dicRet("chilsdren") = dic("obj.numberOfGuests.numberOfChildren")
-    dicRet("infants") = dic("obj.numberOfGuests.numberOfInfants")
-    dicRet("pets") = dic("obj.numberOfGuests.numberOfPets")
-    dicRet("Nb Nuits") = dic("obj.nightsCount")
-    dicRet("Date Début") = ISO8601ToDate(dic("obj.checkIn"))
-    dicRet("checkOut") = ISO8601ToDate(dic("obj.checkOut"))
-     dicRet("PrixOriginal") = dic("obj.money.fareAccommodation")
-     If dic("obj.money.payments(0).fees(0).amount") <> "" Then
-        Fees = CCur(Replace(dic("obj.money.payments(0).fees(0).amount"), ".", ","))
+    dicRet("status") = Dic("obj.status")
+    dicRet("phone") = "'" + Dic("obj.guest.phone")
+    dicRet("guest user") = Dic("obj.guest.fullName")
+    dicRet("lastName") = Dic("obj.guest.lastName")
+    dicRet("firstName") = Dic("obj.guest.firstName")
+    dicRet("guestEmail") = Dic("obj.guest.email")
+    dicRet("listing_id2") = Dic("obj.listingId")
+    dicRet("Location") = dicLogement(Dic("obj.listingId"))
+    dicRet("Source") = dicSource(Dic("obj.integration.platform"))
+    dicRet("Currency") = Dic("obj.listing.prices.currency")
+    dicRet("guestCount") = Dic("obj.guestsCount")
+    dicRet("adults") = Dic("obj.numberOfGuests.numberOfAdults")
+    dicRet("chilsdren") = Dic("obj.numberOfGuests.numberOfChildren")
+    dicRet("infants") = Dic("obj.numberOfGuests.numberOfInfants")
+    dicRet("pets") = Dic("obj.numberOfGuests.numberOfPets")
+    dicRet("Nb Nuits") = Dic("obj.nightsCount")
+    dicRet("Date Début") = ISO8601ToDate(Dic("obj.checkIn"))
+    dicRet("checkOut") = ISO8601ToDate(Dic("obj.checkOut"))
+     dicRet("PrixOriginal") = Dic("obj.money.fareAccommodation")
+     If Dic("obj.money.payments(0).fees(0).amount") <> "" Then
+        Fees = CCur(Replace(Dic("obj.money.payments(0).fees(0).amount"), ".", ","))
     Else
         Fees = 0
     End If
-    dicRet("Frais channel") = CCur(Replace(dic("obj.money.hostServiceFee"), ".", ",")) + Fees
-    dicRet("Ménage") = CCur(Replace(dic("obj.money.fareCleaning"), ".", ","))
-    dicRet("Prix") = CCur(Replace(dic("obj.money.fareAccommodationAdjusted"), ".", ",")) + CCur(dicRet("Ménage"))
-   dicRet("Solde") = dic("obj.money.balanceDue")
-    dicRet("fullyPaid") = dic("obj.money.isFullyPaid")
+    dicRet("Frais channel") = CCur(Replace(Dic("obj.money.hostServiceFee"), ".", ",")) + Fees
+    dicRet("Ménage") = CCur(Replace(Dic("obj.money.fareCleaning"), ".", ","))
+    dicRet("Prix") = CCur(Replace(Dic("obj.money.fareAccommodationAdjusted"), ".", ",")) + CCur(dicRet("Ménage"))
+   dicRet("Solde") = Dic("obj.money.balanceDue")
+    dicRet("fullyPaid") = Dic("obj.money.isFullyPaid")
 
     
     Set GuestyGetReservation = dicRet
@@ -210,20 +242,20 @@ Function GetGuestyToken_v0()
     'Debug.Print "Réponse JSON:", Response
     
     ' 6. Extraction access_token (rapide)
-    Dim dic As Object
+    Dim Dic As Object
     
-    Set dic = ParseJson(Response)
-    Range("lastToken") = dic("obj.access_token")
+    Set Dic = ParseJson(Response)
+    Range("lastToken") = Dic("obj.access_token")
     
     GetGuestyToken = Range("lastToken")
-    Range("dateToken") = DateAdd("s", CLng(dic("obj.expires_in")), Now)
+    Range("dateToken") = DateAdd("s", CLng(Dic("obj.expires_in")), Now)
     
  
 End Function
 Function GetGuestyToken() As String
     ' Déclaration explicite des variables
     Dim http As Object
-    Dim dic As Object
+    Dim Dic As Object
     Dim url As String, postData As String, responseBody As String
     Dim cacheDate As Variant
     
@@ -272,35 +304,35 @@ Function GetGuestyToken() As String
     responseBody = http.responseText
     
     ' --- 5. PARSING ET STOCKAGE ---
-    Set dic = ParseJson(responseBody)
+    Set Dic = ParseJson(responseBody)
     
     ' Note : Vérifiez bien la structure de votre JSON.
     ' Standard OAuth2 : dic("access_token") et dic("expires_in")
     ' Si votre ParseJson retourne une structure à plat, gardez votre syntaxe précédente.
     
-    If dic Is Nothing Then Err.Raise vbObjectError + 2, "GetGuestyToken", "Erreur de parsing JSON"
+    If Dic Is Nothing Then Err.Raise vbObjectError + 2, "GetGuestyToken", "Erreur de parsing JSON"
     
     ' On vérifie que la clé existe avant de l'utiliser
-    If Not dic.Exists("access_token") Then
+    If Not Dic.Exists("access_token") Then
         ' Fallback si votre parser utilise une autre clé (comme dans votre code original)
-        If dic.Exists("obj.access_token") Then
-             Feuil1.Range("lastToken").value = dic("obj.access_token")
-             Feuil1.Range("dateToken").value = DateAdd("s", CLng(dic("obj.expires_in")), Now)
+        If Dic.Exists("obj.access_token") Then
+             Feuil1.Range("lastToken").value = Dic("obj.access_token")
+             Feuil1.Range("dateToken").value = DateAdd("s", CLng(Dic("obj.expires_in")), Now)
         Else
              Err.Raise vbObjectError + 3, "GetGuestyToken", "Token introuvable dans la réponse JSON"
         End If
     Else
         ' Cas Standard
-        Feuil1.Range("lastToken").value = dic("access_token")
+        Feuil1.Range("lastToken").value = Dic("access_token")
         ' On retire 60 secondes à la date d'expiration pour avoir une marge de sécurité
-        Feuil1.Range("dateToken").value = DateAdd("s", CLng(dic("expires_in")) - 60, Now)
+        Feuil1.Range("dateToken").value = DateAdd("s", CLng(Dic("expires_in")) - 60, Now)
     End If
     
     GetGuestyToken = Range("lastToken").value
     
     ' Nettoyage mémoire
     Set http = Nothing
-    Set dic = Nothing
+    Set Dic = Nothing
     Exit Function
 
 ErrHandler:
@@ -309,7 +341,7 @@ ErrHandler:
     ' Optionnel : MsgBox "Impossible de récupérer le token Guesty : " & Err.Description, vbCritical
     GetGuestyToken = ""
     Set http = Nothing
-    Set dic = Nothing
+    Set Dic = Nothing
 End Function
 Public Sub GuestyGetReservations(Optional effaceLog = True)
     'Récupération des cent dernières réservations
@@ -452,10 +484,10 @@ Sub GuestyGetReviews(Optional effaceLog = True)
         Dim indexR
         indexR = Feuil10.Range("listeRésas").ListObject.ListColumns("Code réservation").DataBodyRange.value
         
-        Dim r As Long
-        For r = 1 To nr
-            D(indexR(r, 1)) = r
-        Next r
+        Dim R As Long
+        For R = 1 To nr
+            D(indexR(R, 1)) = R
+        Next R
     End If
     
     '--------------------------------------------------------------------------
@@ -613,7 +645,7 @@ Sub GuestyRemoveReservation(iReservation)
     log ""
     
     '-------------------------------------------------------------------
-    '3. On supprime la ligne
+    '2. On supprime la ligne
     '-------------------------------------------------------------------
     Range("ListeRésas").ListObject.ListRows(iReservation).Delete
     
@@ -639,6 +671,7 @@ Sub GuestyTraitementReservations()
     CompareGuestyDansResas
     
     TriListeResas
+    NettoyageAnnulations
 End Sub
 '--- Clé composite stable : logement|source|yyyymmdd|nbNuits
 Private Function KeyOf(Logement As Variant, Source As Variant, D As Variant, nbNuits As Variant) As String
@@ -652,7 +685,7 @@ Sub CompareResasDansGuesty()
     '1. On construit le dictionnaire des réservations existantes
     '--------------------------------------------------------------------------------
     Dim loR As ListObject, log As ListObject
-    Dim D As Object, r As Long, nr As Long, nG As Long
+    Dim D As Object, R As Long, nr As Long, nG As Long
     Dim k As String, out(), col As ListColumn
     
     Set loR = Feuil10.Range("ListeRésas").ListObject
@@ -670,10 +703,10 @@ Sub CompareResasDansGuesty()
         aDateR = loR.ListColumns("Date Début").DataBodyRange.value
         aNuitR = loR.ListColumns("Nb Nuits").DataBodyRange.value
         
-        For r = 1 To nr
-            k = KeyOf(aLogR(r, 1), aSrcR(r, 1), aDateR(r, 1), aNuitR(r, 1))
-            D(k) = r
-        Next r
+        For R = 1 To nr
+            k = KeyOf(aLogR(R, 1), aSrcR(R, 1), aDateR(R, 1), aNuitR(R, 1))
+            D(k) = R
+        Next R
     End If
     
     '--------------------------------------------------------------------------------
@@ -691,13 +724,13 @@ Sub CompareResasDansGuesty()
     gidReservation = log.ListColumns(idxResas("Code réservation")).DataBodyRange.value
     
     ReDim out(1 To nG, 1 To 1)
-    For r = 1 To nG
-        k = KeyOf(gLog(r, 1), gSrc(r, 1), gDate(r, 1), gNuit(r, 1))
+    For R = 1 To nG
+        k = KeyOf(gLog(R, 1), gSrc(R, 1), gDate(R, 1), gNuit(R, 1))
         If Not (D.Exists(k)) Then
-            GuestyAddReservation gidReservation(r, 1)
+            GuestyAddReservation gidReservation(R, 1)
         End If
             
-    Next r
+    Next R
     
 End Sub
 
@@ -708,7 +741,7 @@ Sub CompareGuestyDansResas()
     '1. On construit le dictionnaire des réservations existantes
     '--------------------------------------------------------------------------------
     Dim loR As ListObject, log As ListObject
-    Dim D As Object, r As Long, nr As Long, nG As Long
+    Dim D As Object, R As Long, nr As Long, nG As Long
     Dim k As String, out(), col As ListColumn
     CreationDictionnaires
     
@@ -728,10 +761,10 @@ Sub CompareGuestyDansResas()
         aDateR = loR.ListColumns("Date Début").DataBodyRange.value
         aNuitR = loR.ListColumns("Nb Nuits").DataBodyRange.value
         
-        For r = 1 To nr
-            k = KeyOf(aLogR(r, 1), aSrcR(r, 1), aDateR(r, 1), aNuitR(r, 1))
-            D(k) = r
-        Next r
+        For R = 1 To nr
+            k = KeyOf(aLogR(R, 1), aSrcR(R, 1), aDateR(R, 1), aNuitR(R, 1))
+            D(k) = R
+        Next R
     End If
     
     '--------------------------------------------------------------------------------
@@ -748,16 +781,16 @@ Sub CompareGuestyDansResas()
     gNuit = log.ListColumns("Nb Nuits").DataBodyRange.value
     gidReservation = log.ListColumns(idxResas("Code réservation")).DataBodyRange.value
     
-    For r = 1 To nG
-        k = KeyOf(gLog(r, 1), gSrc(r, 1), gDate(r, 1), gNuit(r, 1))
-        If CLng(Now) - CLng(gDate(r, 1)) > 60 Then Exit For
+    For R = 1 To nG
+        k = KeyOf(gLog(R, 1), gSrc(R, 1), gDate(R, 1), gNuit(R, 1))
+        If CLng(Now) - CLng(gDate(R, 1)) > 60 Then Exit For
         'If dicLogement(gLog(r, 1)) And gNuit(r, 1) > 0 Then
-        If gNuit(r, 1) > 0 Then
-            If Not (D.Exists(k)) And gSrc(r, 1) <> "HomeExchange" Then
-                GuestyRemoveReservation r
+        If gNuit(R, 1) > 0 Then
+            If Not (D.Exists(k)) And gSrc(R, 1) <> "HomeExchange" Then
+                GuestyRemoveReservation R
             End If
         End If
-    Next r
+    Next R
     
 End Sub
 
@@ -791,6 +824,31 @@ Sub MajGuesty()
     
     Call ChronoStop(t0, "MajGuesty")
 End Sub
+Sub NettoyageAnnulations()
+'
+'Cette procédure permet de nettoyer les annulations redondantes avec une réservation
+'Elle est appelée à la fin du traitement des réservations
+'
+Dim T As Variant
+Dim U As Variant
+Dim i As Long
+Dim Dic As Object
+
+T = Range("ListeRésas[Code réservation]").value
+U = Range("Annulation[Code réservation]").value
+Set Dic = New Dictionary
+For i = 1 To UBound(T)
+    Dic(T(i, 1)) = i
+Next
+
+For i = UBound(U) To 1 Step -1
+    If Dic(U(i, 1)) <> "" Then
+       Range("Annulation").ListObject.ListRows(i).Delete
+    End If
+Next i
+
+End Sub
+
 Sub TriListeResas()
     RAZFiltres "ListeRésas"
     With Range("ListeRésas").ListObject

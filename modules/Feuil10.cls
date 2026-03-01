@@ -32,7 +32,7 @@ End Sub
 
 
 Private Sub FiltreMois_Click()
-    If mois = 0 Then
+    If Mois = 0 Then
         MoisFiltre = Month(Date)
         AnneeFiltre = Year(Date)
         
